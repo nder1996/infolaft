@@ -12,6 +12,8 @@ Sistema desarrollado con Angular 16 y Spring Boot 3.2 para la gestión de tareas
 - Interfaz moderna con PrimeNG y Bootstrap 5.2
 - Diseño responsive y amigable al usuario
 - Base de datos en la nube para acceso permanente
+- Pantalla de carga oscura con bloqueo de eventos durante operaciones
+- Sistema de prevención de doble envío de formularios
 
 ## 💻 Tecnologías Utilizadas
 
@@ -73,7 +75,6 @@ mvn spring-boot:run
 - Etiquetas personalizadas
 - Sistema de comentarios en tareas
 - Adjuntar archivos
-- Modo oscuro/claro
 
 ### Colaboración
 - Compartir tareas entre usuarios
