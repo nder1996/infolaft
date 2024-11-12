@@ -42,11 +42,8 @@ public class ReferenceService {
                 }
                 return ResponseApiBuilderService.successResponse(prioridad, "PRIORIDAD");
             } else {
-                return ResponseApiBuilderService.errorResponse(
-                        404,
-                        "NOT_FOUND",
-                        "No hay registro de tareas"
-                );
+                return ResponseApiBuilderService.errorResponse(200, "NO_CONTENT", "No hay registro disponibles");
+
             }
         } catch (Exception e) {
             System.err.println(e.getMessage());
@@ -77,11 +74,8 @@ public class ReferenceService {
                 }
                 return ResponseApiBuilderService.successResponse(estados, "ESTADO");
             } else {
-                return ResponseApiBuilderService.errorResponse(
-                        404,
-                        "NOT_FOUND",
-                        "No hay registro de estados"
-                );
+                return ResponseApiBuilderService.errorResponse(200, "NO_CONTENT", "No hay registro disponibles");
+
             }
         } catch (Exception e) {
             System.err.println(e.getMessage());

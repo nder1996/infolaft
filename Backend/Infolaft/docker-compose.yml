@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  springboot-app:
+    build: .
+    container_name: infolaft-app
+    ports:
+      - "8700:8700"
+    environment:
+      # Database Configuration
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql-ander.alwaysdata.net:3306/ander_infolaft
+      SPRING_DATASOURCE_USERNAME: ander_desarrollo
+      SPRING_DATASOURCE_PASSWORD: "@AnderAAM1996"
+      SPRING_DATASOURCE_DRIVER_CLASS_NAME: com.mysql.cj.jdbc.Driver
+
+      # JPA / Hibernate
+      SPRING_JPA_HIBERNATE_DIALECT: org.hibernate.dialect.MySQL8Dialect
+      SPRING_JPA_SHOW_SQL: "false"
+      SPRING_JPA_HIBERNATE_NAMING_PHYSICAL_STRATEGY: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+
+      # Swagger Configuration
+      SPRINGDOC_SWAGGER_UI_PATH: /swagger-ui.html
+      SPRINGDOC_SWAGGER_UI_ENABLED: "true"
+      SPRINGDOC_SWAGGER_UI_OPERATIONS_SORTER: method
+
+      # Application Name
+      SPRING_APPLICATION_NAME: Infolaft
+    networks:
+      - infolaft-network
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8700/swagger-ui.html"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  infolaft-network:
+    driver: bridge

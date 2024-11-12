@@ -43,7 +43,7 @@ public class TareaService {
             if (gestion != null && !gestion.isEmpty()) {
                 return ResponseApiBuilderService.successResponse(gestion, "GESTION_TAREAS");
             } else {
-                return ResponseApiBuilderService.errorResponse(404, "NOT_FOUND", "No hay registro de tareas");
+                return ResponseApiBuilderService.errorResponse(200, "NO_CONTENT", "No hay registro disponibles");
             }
         } catch (Exception e) {
             System.err.println(e.getMessage());
@@ -57,7 +57,7 @@ public class TareaService {
             if (gestion != null && !gestion.isEmpty()) {
                 return ResponseApiBuilderService.successResponse(gestion, "GESTION_TAREAS");
             } else {
-                return ResponseApiBuilderService.errorResponse(404, "NOT_FOUND", "No hay registro de tareas");
+                return ResponseApiBuilderService.errorResponse(200, "NO_CONTENT", "No hay registro disponibles");
             }
         } catch (Exception e) {
             System.err.println(e.getMessage());
@@ -75,7 +75,7 @@ public class TareaService {
             if (tareas != null && !tareas.isEmpty()) {
                 return ResponseApiBuilderService.successResponse(tareas, "TODAS_TAREAS");
             } else {
-                return ResponseApiBuilderService.errorResponse(404, "NOT_FOUND", "No hay registros de tareas");
+                return ResponseApiBuilderService.errorResponse(200, "NO_CONTENT", "No hay registro disponibles");
             }
         } catch (Exception e) {
             System.err.println(e.getMessage());
@@ -90,7 +90,7 @@ public class TareaService {
             if (tarea != null) {
                 return ResponseApiBuilderService.successResponse(tarea, "TAREA_ENCONTRADA");
             } else {
-                return ResponseApiBuilderService.errorResponse(404, "NOT_FOUND", "No se encontró la tarea");
+                return ResponseApiBuilderService.errorResponse(200, "NO_CONTENT", "No hay registro disponibles");
             }
         } catch (Exception e) {
             System.err.println(e.getMessage());
@@ -106,7 +106,7 @@ public class TareaService {
                 this.saveAuditoria(tarea.getId(),4,tarea.getIdPrioridad(),"TAREA_BORRADA");
                 return ResponseApiBuilderService.successResponse("Tarea borrada correctamente", "TAREA_BORRADA");
             } else {
-                return ResponseApiBuilderService.errorResponse(404, "NOT_FOUND", "No se encontró la tarea para Borrar");
+                return ResponseApiBuilderService.errorResponse(204, "NO_CONTENT", "No hay registro disponibles");
             }
         } catch (Exception e) {
             System.err.println(e.getMessage());

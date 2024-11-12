@@ -69,12 +69,12 @@ export class GestionTareasComponent implements OnInit, AfterViewInit {
 
 
   async ngOnInit() {
-    console.log('3. NgOnInit - Después del constructor');
+    // console.log('3. NgOnInit - Después del constructor');
     await this.getTasks();
   }
 
   ngAfterViewInit(): void {
-    console.log('4. NgAfterViewInit - Después de inicializar la vista');
+    // console.log('4. NgAfterViewInit - Después de inicializar la vista');
     this.cdr.detectChanges();
 
   }
@@ -82,9 +82,10 @@ export class GestionTareasComponent implements OnInit, AfterViewInit {
   reloadPage() {
     const currentUrl = this.router.url;
     this.router.navigateByUrl('/', { skipLocationChange: true }).then(() => {
-      this.router.navigate([currentUrl]);
+      this.router.navigate([currentUrl]).then(() => {
+        this.cdr.detectChanges(); // Asegura la actualización de la vista
+      });
     });
-
   }
 
 
@@ -122,17 +123,22 @@ export class GestionTareasComponent implements OnInit, AfterViewInit {
     await this.getAllEstados();
     this.actionEditarCrud = false;
     this.showTask = true;
+    let estadoEncontrado = this.listEstados.find(estado => estado.id === 1);
+    this.selectedEstado = estadoEncontrado ?? new EstadoResponse();
+    this.taskForm.get('estado')?.setValue(estadoEncontrado);
+    this.taskForm.get('estado')?.disable();
     this.cdr.detectChanges();
   }
 
   selectedPrioridad: PrioridadResponse = new PrioridadResponse();
   selectedEstado: EstadoResponse = new EstadoResponse();
-  
+
 
   async cargarModalEditar(task: GestionTareasResponse) {
     if (task) {
       await this.getAllPrioridades();
       await this.getAllEstados();
+      this.taskForm.get('estado')?.enable();
       this.selectedPrioridad = task.prioridad ?? new PrioridadResponse();
       this.selectedEstado = task.estado ?? new EstadoResponse();
       console.log('modal editar : ' + JSON.stringify(this.selectedPrioridad))
@@ -144,12 +150,14 @@ export class GestionTareasComponent implements OnInit, AfterViewInit {
         estado: task.estado,
         prioridad: task.prioridad,
       });
-      console.log("datos de form : " + JSON.stringify(this.taskForm.value))
+
+      // console.log("datos de form : " + JSON.stringify(this.taskForm.value))
     }
     this.actionEditarCrud = true;
-    this.showTask = true;
-
     this.cdr.detectChanges();
+    this.showTask = true;
+   
+  
   }
 
 
@@ -166,7 +174,7 @@ export class GestionTareasComponent implements OnInit, AfterViewInit {
   async createTask(task: TareaModelRequest): Promise<void> {
     try {
       const response = await firstValueFrom(this.tareaService.createTask(task));
-  
+
       if (response.meta.statusCode !== 200) {
         this.messageService.add({
           severity: 'error',
@@ -175,18 +183,20 @@ export class GestionTareasComponent implements OnInit, AfterViewInit {
         });
         return;
       }
-  
+
       this.messageService.add({
         severity: 'success',
         summary: 'Éxito',
         detail: 'Tarea creada exitosamente'
       });
-  
+
       // Reset del formulario o estado si es necesario
-      this.taskForm.reset();
+      await this.ngOnInit()
+      this.showTask = false;
+
       // Recargar datos o actualizar vista
-      this.reloadPage();
-  
+     
+
     } catch (error) {
       console.error('Error al crear la tarea:', error);
       this.messageService.add({
@@ -218,7 +228,8 @@ export class GestionTareasComponent implements OnInit, AfterViewInit {
       });
 
       this.showHistoryTask = false;
-      this.reloadPage();
+      await this.ngOnInit()
+
 
     } catch (error) {
       console.error('Error al activar la tarea:', error);
@@ -249,9 +260,8 @@ export class GestionTareasComponent implements OnInit, AfterViewInit {
         detail: 'Tarea Borrada'
       });
 
-
+      await this.ngOnInit()
       this.showDelete = false;
-      this.reloadPage()
 
 
     } catch (error) {
@@ -268,10 +278,9 @@ export class GestionTareasComponent implements OnInit, AfterViewInit {
   async getTasks(): Promise<void> {
     try {
       const response = await firstValueFrom(this.tareaService.getTasks());
-      if (response.error) {
+      if (response.error && response.error.code == "NO_CONTENT") {
         this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
+          severity: 'warn', summary: 'Warning',
           detail: response.error.description || 'Error desconocido'
         });
         return;
@@ -279,14 +288,14 @@ export class GestionTareasComponent implements OnInit, AfterViewInit {
 
       if (!response.data?.length) {
         this.messageService.add({
-          severity: 'warn',
-          summary: 'Advertencia',
+          severity: 'warn', summary: 'Warning',
           detail: 'No se encontraron tareas'
         });
         this.listTask = [];
         return;
       }
       this.listTask = response.data;
+      this.reloadPage()
     } catch (error) {
       console.error('Error al obtener tareas:', error);
       this.messageService.add({
@@ -301,10 +310,9 @@ export class GestionTareasComponent implements OnInit, AfterViewInit {
   async getHistoyTasks(): Promise<void> {
     try {
       const response = await firstValueFrom(this.tareaService.getHistoryTasks());
-      if (response.error) {
+      if (response.error && response.error.code == "NO_CONTENT") {
         this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
+          severity: 'warn', summary: 'Warning',
           detail: response.error.description || 'Error desconocido'
         });
         return;
@@ -312,8 +320,7 @@ export class GestionTareasComponent implements OnInit, AfterViewInit {
 
       if (!response.data?.length) {
         this.messageService.add({
-          severity: 'warn',
-          summary: 'Advertencia',
+          severity: 'warn', summary: 'Warning',
           detail: 'No se encontraron tareas'
         });
         this.listHistoryTask = [];
@@ -321,6 +328,7 @@ export class GestionTareasComponent implements OnInit, AfterViewInit {
       }
 
       this.listHistoryTask = response.data;
+      this.reloadPage()
 
     } catch (error) {
       console.error('Error al obtener tareas:', error);
@@ -337,10 +345,9 @@ export class GestionTareasComponent implements OnInit, AfterViewInit {
   async getAllPrioridades(): Promise<void> {
     try {
       const response = await firstValueFrom(this.referenceDataService.getAllPrioridades());
-      if (response.error) {
+      if (response.error && response.error.code == "NO_CONTENT") {
         this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
+          severity: 'warn', summary: 'Warning',
           detail: response.error.description || 'Error desconocido'
         });
         return;
@@ -348,8 +355,7 @@ export class GestionTareasComponent implements OnInit, AfterViewInit {
 
       if (!response.data?.length) {
         this.messageService.add({
-          severity: 'warn',
-          summary: 'Advertencia',
+          severity: 'warn', summary: 'Warning',
           detail: 'No se encontraron prioridades'
         });
         this.listPrioridades = [];
@@ -371,10 +377,9 @@ export class GestionTareasComponent implements OnInit, AfterViewInit {
   async getAllEstados(): Promise<void> {
     try {
       const response = await firstValueFrom(this.referenceDataService.getAllEstados());
-      if (response.error) {
+      if (response.error && response.error.code == "NO_CONTENT") {
         this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
+          severity: 'warn', summary: 'Warning',
           detail: response.error.description || 'Error desconocido'
         });
         return;
@@ -382,14 +387,14 @@ export class GestionTareasComponent implements OnInit, AfterViewInit {
 
       if (!response.data?.length) {
         this.messageService.add({
-          severity: 'warn',
-          summary: 'Advertencia',
+          severity: 'warn', summary: 'Warning',
           detail: 'No se encontraron estados'
         });
         this.listEstados = [];
         return;
       }
-      this.listEstados = response.data;
+      this.listEstados = response.data.filter((estado: EstadoResponse) => estado.id !== 4);
+
       //console.log("estados : " + JSON.stringify(this.listEstados))
     } catch (error) {
       console.error('Error al obtener estados:', error);

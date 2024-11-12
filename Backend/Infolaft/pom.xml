@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>Gestion.Tareas</groupId>
 	<artifactId>Infolaft</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>1</version>
 	<packaging>war</packaging>
 	<name>Infolaft</name>
 	<description>Gestion Tareas - Task</description>
@@ -40,7 +40,10 @@
 			<artifactId>mybatis-spring-boot-starter</artifactId>
 			<version>3.0.3</version>
 		</dependency>
-
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-docker-compose</artifactId>
+		</dependency>
 		<dependency>
 			<groupId>com.mysql</groupId>
 			<artifactId>mysql-connector-j</artifactId>
@@ -93,6 +96,11 @@
 						</exclude>
 					</excludes>
 				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-resources-plugin</artifactId>
+				<version>3.1.0</version>
 			</plugin>
 		</plugins>
 	</build>
