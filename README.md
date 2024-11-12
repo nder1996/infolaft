@@ -1,6 +1,6 @@
 # Sistema de Gestión de Tareas
 
-Sistema desarrollado con Angular 16 y Spring Boot 3.2 para la gestión de tareas con historial de cambios, fechas de vencimiento, filtros avanzados y niveles de prioridad. Base de datos alojada en la nube para garantizar accesibilidad y respaldo continuo.
+Sistema desarrollado con Angular 16 y Spring Boot 3.2 para la gestión de tareas con historial de cambios, fechas de vencimiento, filtros avanzados y niveles de prioridad. Implementado con arquitectura de microservicios para mejorar la escalabilidad y el mantenimiento de la aplicación. La base de datos está alojada en la nube para garantizar accesibilidad y respaldo continuo, permitiendo un rendimiento óptimo y disponibilidad constante.
 
 ## 🚀 Características Principales
 
