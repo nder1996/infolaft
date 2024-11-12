@@ -28,6 +28,8 @@ public class Tarea {
     @Positive(message = "El ID del estado debe ser un número positivo")
     private Integer idEstado;
 
+    private Integer idEstadoAnterior;
+
     @NotNull(message = "El ID de la prioridad es obligatorio")
     @Positive(message = "El ID de la prioridad debe ser un número positivo")
     private Integer idPrioridad;

@@ -25,24 +25,24 @@ public class ReferenceService {
     validationService validatorService;
 
 
-    public ApiResponse<String> getAllPrioridad() {
+    public ApiResponse<List<Prioridad>> getAllPrioridad() {
         try {
-            List<Prioridad> gestion = this.referenceRepository.getAllPrioridad();
+            List<Prioridad> prioridad = this.referenceRepository.getAllPrioridad();
             // Validamos cada objeto de la lista
-            if (gestion != null && !gestion.isEmpty()) {
-                for (Prioridad prioridad : gestion) {
-                    List<String> errors = validatorService.validate(prioridad);
+            if (prioridad != null && !prioridad.isEmpty()) {
+                for (Prioridad prio : prioridad) {
+                    List<String> errors = validatorService.validate(prio);
                     if (!errors.isEmpty()) {
-                        return this.responseApiBuilderService.errorRespuesta(
+                        return ResponseApiBuilderService.errorResponse(
                                 400,
                                 "VALIDATION_ERROR",
                                 "Error de validación: " + String.join(", ", errors)
                         );
                     }
                 }
-                return this.responseApiBuilderService.successRespuesta(gestion, "PRIORIDAD");
+                return ResponseApiBuilderService.successResponse(prioridad, "PRIORIDAD");
             } else {
-                return this.responseApiBuilderService.errorRespuesta(
+                return ResponseApiBuilderService.errorResponse(
                         404,
                         "NOT_FOUND",
                         "No hay registro de tareas"
@@ -50,7 +50,7 @@ public class ReferenceService {
             }
         } catch (Exception e) {
             System.err.println(e.getMessage());
-            return this.responseApiBuilderService.errorRespuesta(
+            return ResponseApiBuilderService.errorResponse(
                     500,
                     "SERVER_ERROR",
                     "ERROR EN EL SERVIDOR"
@@ -58,17 +58,41 @@ public class ReferenceService {
         }
     }
 
-    public ApiResponse<String> getAllEstado(){
+    public ApiResponse<List<Estado>> getAllEstado() {
         try {
-            List<Estado> gestion = this.referenceRepository.getAllEstado();
-            if(gestion!=null && !gestion.isEmpty()){
-                return this.responseApiBuilderService.successRespuesta(gestion, "ESTADO");
-            }else{
-                return this.responseApiBuilderService.errorRespuesta(404,"NOT_FOUND","No hay registro de tareas");
+            List<Estado> estados = this.referenceRepository.getAllEstado();
+
+            // Validamos que la lista no sea nula y tenga elementos
+            if (estados != null && !estados.isEmpty()) {
+                // Validamos cada objeto Estado de la lista
+                for (Estado estado : estados) {
+                    List<String> errors = validatorService.validate(estado);
+                    if (!errors.isEmpty()) {
+                        return ResponseApiBuilderService.errorResponse(
+                                400,
+                                "VALIDATION_ERROR",
+                                "Error de validación: " + String.join(", ", errors)
+                        );
+                    }
+                }
+                return ResponseApiBuilderService.successResponse(estados, "ESTADO");
+            } else {
+                return ResponseApiBuilderService.errorResponse(
+                        404,
+                        "NOT_FOUND",
+                        "No hay registro de estados"
+                );
             }
         } catch (Exception e) {
             System.err.println(e.getMessage());
-            return this.responseApiBuilderService.errorRespuesta(500,"SERVER_ERROR","ERROR EN EL SERVIDOR");
+            return ResponseApiBuilderService.errorResponse(
+                    500,
+                    "SERVER_ERROR",
+                    "ERROR EN EL SERVIDOR"
+            );
         }
     }
+
+
+
 }

@@ -3,22 +3,21 @@ package Gestion.Tareas.Infolaft.service;
 import Gestion.Tareas.Infolaft.dto.request.TareaRequest;
 import Gestion.Tareas.Infolaft.dto.response.ApiResponse;
 import Gestion.Tareas.Infolaft.dto.response.GestionTareasResponse;
+import Gestion.Tareas.Infolaft.model.Auditoria;
 import Gestion.Tareas.Infolaft.model.Tarea;
 import Gestion.Tareas.Infolaft.model.TareaXAuditoria;
 import Gestion.Tareas.Infolaft.repository.TareaRepository;
 import Gestion.Tareas.Infolaft.repository.TareaXAuditoriaRepository;
-import jakarta.validation.ConstraintViolation;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.Optional;
 
+
+@Slf4j
 @Service
 public class TareaService {
 
@@ -35,121 +34,196 @@ public class TareaService {
     @Autowired
     validationService validatorService;
 
-    @Getter
-    @Setter
-    public boolean tipoOperacion=false;
 
 
-    public ApiResponse<String> getAllGestionTareas() {
+
+    public ApiResponse<List<GestionTareasResponse>> getAllGestionTareas() {
         try {
             List<GestionTareasResponse> gestion = this.tareaRepository.gestionTareas();
             if (gestion != null && !gestion.isEmpty()) {
-                return this.responseApiBuilderService.successRespuesta(gestion, "GESTION_COTIZACION");
+                return ResponseApiBuilderService.successResponse(gestion, "GESTION_TAREAS");
             } else {
-                return this.responseApiBuilderService.errorRespuesta(404, "NOT_FOUND", "No hay registro de tareas");
+                return ResponseApiBuilderService.errorResponse(404, "NOT_FOUND", "No hay registro de tareas");
             }
         } catch (Exception e) {
             System.err.println(e.getMessage());
-            return this.responseApiBuilderService.errorRespuesta(500, "SERVER_ERROR", "ERROR EN EL SERVIDOR");
+            return ResponseApiBuilderService.errorResponse(500, "SERVER_ERROR", "ERROR EN EL SERVIDOR");
         }
     }
 
-    public ApiResponse<String> findAll() {
+    public ApiResponse<List<GestionTareasResponse>> gestionHistoricoTareas() {
+        try {
+            List<GestionTareasResponse> gestion = this.tareaRepository.gestionHistoricoTareas();
+            if (gestion != null && !gestion.isEmpty()) {
+                return ResponseApiBuilderService.successResponse(gestion, "GESTION_TAREAS");
+            } else {
+                return ResponseApiBuilderService.errorResponse(404, "NOT_FOUND", "No hay registro de tareas");
+            }
+        } catch (Exception e) {
+            System.err.println(e.getMessage());
+            return ResponseApiBuilderService.errorResponse(500, "SERVER_ERROR", "ERROR EN EL SERVIDOR");
+        }
+    }
+
+
+
+
+
+    public ApiResponse<List<Tarea>> findAll() {
         try {
             List<Tarea> tareas = this.tareaRepository.findAll();
             if (tareas != null && !tareas.isEmpty()) {
-                return responseApiBuilderService.successRespuesta(tareas, "TODAS_TAREAS");
+                return ResponseApiBuilderService.successResponse(tareas, "TODAS_TAREAS");
             } else {
-                return responseApiBuilderService.errorRespuesta(404, "NOT_FOUND", "No hay registros de tareas");
+                return ResponseApiBuilderService.errorResponse(404, "NOT_FOUND", "No hay registros de tareas");
             }
         } catch (Exception e) {
             System.err.println(e.getMessage());
-            return responseApiBuilderService.errorRespuesta(500, "SERVER_ERROR", "Error en el servidor");
+            return ResponseApiBuilderService.errorResponse(500, "SERVER_ERROR", "Error en el servidor");
         }
     }
 
-    public ApiResponse<String> findById(Integer id) {
+    public ApiResponse<Tarea> findById(Integer id) {
         try {
+
             Tarea tarea = this.tareaRepository.findById(id);
             if (tarea != null) {
-                return responseApiBuilderService.successRespuesta(tarea, "TAREA_ENCONTRADA");
+                return ResponseApiBuilderService.successResponse(tarea, "TAREA_ENCONTRADA");
             } else {
-                return responseApiBuilderService.errorRespuesta(404, "NOT_FOUND", "No se encontró la tarea");
+                return ResponseApiBuilderService.errorResponse(404, "NOT_FOUND", "No se encontró la tarea");
             }
         } catch (Exception e) {
             System.err.println(e.getMessage());
-            return responseApiBuilderService.errorRespuesta(500, "SERVER_ERROR", "Error en el servidor");
+            return ResponseApiBuilderService.errorResponse(500, "SERVER_ERROR", "Error en el servidor");
         }
     }
 
     public ApiResponse<String> inactivateById(Integer id) {
         try {
+            Tarea tarea = this.tareaRepository.findById(id);
             int result = this.tareaRepository.inactivateById(id);
             if (result > 0) {
-                return responseApiBuilderService.successRespuesta("Tarea inactivada correctamente", "TAREA_BORRADA");
+                this.saveAuditoria(tarea.getId(),4,tarea.getIdPrioridad(),"TAREA_BORRADA");
+                return ResponseApiBuilderService.successResponse("Tarea borrada correctamente", "TAREA_BORRADA");
             } else {
-                return responseApiBuilderService.errorRespuesta(404, "NOT_FOUND", "No se encontró la tarea para Borrar");
+                return ResponseApiBuilderService.errorResponse(404, "NOT_FOUND", "No se encontró la tarea para Borrar");
             }
         } catch (Exception e) {
             System.err.println(e.getMessage());
-            return responseApiBuilderService.errorRespuesta(500, "SERVER_ERROR", "Error en el servidor");
+            return ResponseApiBuilderService.errorResponse(500, "SERVER_ERROR", "Error en el servidor");
         }
     }
 
 
-    public ApiResponse<String> saveTask(TareaRequest tareaRequest) {
+    public ApiResponse<String> activeTaskById(Integer id) {
         try {
-            // Validar TareaRequest
+            // Validar que el ID no sea nulo
+            if (id == null) {
+                return ResponseApiBuilderService.errorResponse(400, "BAD_REQUEST", "El ID de la tarea es requerido");
+            }
+
+            // Obtener la última tarea por auditoría
+            List<TareaXAuditoria> audiXTarea = tareaXAuditoriaRepository.byIdAuditoriXUltimoTarea(id);
+
+            // Validar que existan registros
+            if (audiXTarea == null || audiXTarea.isEmpty()) {
+                return ResponseApiBuilderService.errorResponse(404, "NOT_FOUND", "No se encontró la tarea asociada a la auditoría");
+            }
+
+            // Obtener el estado de la tarea
+            Integer idEstado = null;
+
+            // Obtener la tarea actual
+            TareaXAuditoria currentTask;
+            if (audiXTarea.size() > 1) {
+                currentTask = audiXTarea.get(1);
+            } else {
+                currentTask = audiXTarea.get(0);
+            }
+
+            if (currentTask != null && currentTask.getIdTarea() != null) {
+                // Buscar la tarea directamente por ID
+                Optional<Auditoria> auditoriaOptional = Optional.ofNullable(tareaXAuditoriaRepository.byIdAuditoriaXTarea(currentTask.getIdAuditoria()));
+
+                if (auditoriaOptional.isPresent()) {
+                    idEstado = auditoriaOptional.get().getIdEstado();
+                } else {
+                    return ResponseApiBuilderService.errorResponse(404, "NOT_FOUND", "No se encontró la tarea en el repositorio");
+                }
+            } else {
+                return ResponseApiBuilderService.errorResponse(400, "BAD_REQUEST", "La tarea no tiene un ID válido");
+            }
+
+            // Activar la tarea con el estado encontrado
+            int result = tareaRepository.activarById(id, idEstado);
+            Tarea taskResult = tareaRepository.findById(id);
+
+            if (result > 0) {
+                this.saveAuditoria(taskResult.getId(),taskResult.getIdEstado(),taskResult.getIdPrioridad(),"TAREA RECUPERADA");
+                return ResponseApiBuilderService.successResponse("Tarea recuperada exitosamente", "TAREA_RECUPERADA");
+            } else {
+                return ResponseApiBuilderService.errorResponse(404, "NOT_FOUND", "No se pudo activar la tarea");
+            }
+
+        } catch (Exception e) {
+            log.error("Error al activar la tarea: " + e.getMessage(), e);
+            return ResponseApiBuilderService.errorResponse(500, "SERVER_ERROR", "Error en el servidor: " + e.getMessage());
+        }
+    }
+
+
+
+
+
+    public ApiResponse<String> saveUpdateTask(TareaRequest tareaRequest) {
+        try {
+            // Validar request
             List<String> errores = this.validatorService.validate(tareaRequest);
             if (!errores.isEmpty()) {
-                return responseApiBuilderService.errorRespuesta(
+                return ResponseApiBuilderService.errorResponse(
                         400,
                         "VALIDATION_ERROR",
                         "Error de validación: " + String.join(", ", errores)
                 );
             }
 
-            if(tareaRequest.getId() == null){
+            // Guardar o actualizar tarea
+
+            String responseMessage;
+            String responseCode;
+
+            if (tareaRequest.getId() == null) {
                 tareaRequest.setCreate_at(new Date());
                 tareaRepository.insert(tareaRequest);
-                this.tipoOperacion = false;
-            }else{
+                responseMessage = String.format("La tarea %s fue creada con éxito", tareaRequest.getTitulo());
+                responseCode = "TAREA_CREADA";
+            } else {
                 tareaRequest.setUpdate_at(new Date());
                 tareaRepository.update(tareaRequest);
-                this.tipoOperacion = true;
+                responseMessage = String.format("La tarea %s fue actualizada con éxito", tareaRequest.getTitulo());
+                responseCode = "TAREA_ACTUALIZADA";
             }
 
-            // Validar que se haya guardado correctamente
+            // Validar guardado
             if (tareaRequest.getId() == null) {
-                return responseApiBuilderService.errorRespuesta(
+                return ResponseApiBuilderService.errorResponse(
                         500,
                         "SAVE_ERROR",
                         "Error al guardar la tarea en la base de datos"
                 );
             }
 
-            Integer idAuditoria = this.tareaXAuditoriaRepository.byIdAuditoria(tareaRequest.getIdEstado());
+            this.saveAuditoria(tareaRequest.getId(),tareaRequest.getIdEstado(),tareaRequest.getIdPrioridad(),responseCode);
 
-            // Registrar en AuditoriaXTarea
-            TareaXAuditoria auditoriaXTarea = new TareaXAuditoria();
-            auditoriaXTarea.setIdAuditoria(idAuditoria);
-            auditoriaXTarea.setIdTarea(tareaRequest.getId());
-
-            if(tipoOperacion==false){
-                return responseApiBuilderService.successRespuesta(
-                        String.format("La tarea %s fue creada con exito", tareaRequest.getTitulo()),
-                        "TAREA_CREADA"
-                );
-            }else{
-                return responseApiBuilderService.successRespuesta(
-                        String.format("La tarea %s fue actualizada con exito", tareaRequest.getTitulo()),
-                        "TAREA_CREADA"
-                );
-            }
+            // Retornar respuesta exitosa
+            return ResponseApiBuilderService.successResponse(
+                    responseMessage,
+                    responseCode
+            );
 
         } catch (Exception e) {
-            System.err.println(e.getMessage());
-            return responseApiBuilderService.errorRespuesta(
+            log.error("Error al procesar la tarea: ", e);
+            return ResponseApiBuilderService.errorResponse(
                     500,
                     "SERVER_ERROR",
                     "Error en el servidor: " + e.getMessage()
@@ -157,7 +231,21 @@ public class TareaService {
         }
     }
 
+    public void saveAuditoria(Integer idTarea,Integer idEstado,Integer idPrioridad, String tipoAuditoria){
+        try {
+            Auditoria auditoria = new Auditoria(null,idEstado,idPrioridad,tipoAuditoria,new Date(),"SISTEMA");
+            this.tareaXAuditoriaRepository.insertAuditoria(auditoria);
 
+            ///RELACION ENTRE AUDITORIA X TAREA
+            TareaXAuditoria tareaXAuditoria = new TareaXAuditoria(null,auditoria.getId(),idTarea );
+            this.tareaXAuditoriaRepository.insertTareaXAuditoria(tareaXAuditoria);
+            ///
+            System.out.println("log auditoria Se guardo");
+        } catch (Exception e) {
+            log.error("Error al guardar la auditoria: ", e);
+        }
+
+    }
 
 
 

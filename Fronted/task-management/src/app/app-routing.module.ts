@@ -1,7 +1,6 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { PrincipalComponent } from './pages/principal/principal.component';
-import { DashboardComponent } from './pages/dashboard/dashboard.component';
 import { GestionTareasComponent } from './components/gestion-tareas/gestion-tareas.component';
 
 // Opción 1: Rutas planas
@@ -10,8 +9,8 @@ const routes: Routes = [
   { path: 'principal', component: PrincipalComponent },
   { path: 'tareas', component: GestionTareasComponent },
   { 
-    path: 'dashboard', 
-    component: DashboardComponent,
+    path: 'principal', 
+    component: PrincipalComponent,
     children: [
       { path: 'tasks', component: GestionTareasComponent }
     ]

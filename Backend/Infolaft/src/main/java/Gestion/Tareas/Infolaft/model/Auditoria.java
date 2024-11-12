@@ -21,6 +21,9 @@ public class Auditoria {
     @NotNull(message = "El ID-ESTADO no puede ser nulo")
     private Integer idEstado;
 
+    @NotNull(message = "El ID-ESTADO no puede ser nulo")
+    private Integer idPrioridad;
+
     @Size(max = 100, message = "La acción no puede exceder los 100 caracteres")
     private String accion;
 
@@ -29,7 +32,7 @@ public class Auditoria {
 
     @NotBlank(message = "El campo creadoPor es obligatorio")
     @Size(max = 1000, message = "El campo creadoPor no puede exceder los 1000 caracteres")
-    private String creadoPor; // Cambiado a String según la definición de la base de datos
+    private String creadoPor;
 
 
 }

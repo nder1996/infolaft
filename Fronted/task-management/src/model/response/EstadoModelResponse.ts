@@ -1,4 +1,4 @@
-export class EstadoRequest {
+export class EstadoResponse {
     id?: number;
     nombre?: string;
     descripcion?: string;

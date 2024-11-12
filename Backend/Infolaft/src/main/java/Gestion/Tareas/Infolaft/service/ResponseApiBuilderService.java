@@ -1,19 +1,21 @@
 package Gestion.Tareas.Infolaft.service;
 
 import Gestion.Tareas.Infolaft.dto.response.ApiResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
 
+@Slf4j
 @Service
 public class ResponseApiBuilderService {
 
 
-    public ApiResponse<String> successRespuesta(Object data, String key) {
-        ApiResponse<String> response = new ApiResponse<>();
+
+    public static <T> ApiResponse<T> successResponse(T data, String key) {
+        ApiResponse<T> response = new ApiResponse<>();
         try {
             response.setMeta(new ApiResponse.Meta("Operación Exitosa", 200));
-            response.setData(Collections.singletonMap(key, data));
+            response.setData(data);
         } catch (Exception ex) {
             System.out.println(ex.getMessage());
             return null;
@@ -21,12 +23,13 @@ public class ResponseApiBuilderService {
         return response;
     }
 
-    public ApiResponse<String> errorRespuesta(Integer codeHttp, String codeName, String codeDescripcion) {
-        ApiResponse<String> response = new ApiResponse<>();
+
+    public static <T> ApiResponse<T> errorResponse(Integer codeHttp, String codeName, String codeDescription) {
+        ApiResponse<T> response = new ApiResponse<>();
         try {
             response.setData(null);
             response.setMeta(new ApiResponse.Meta("Solicitud Incorrecta", codeHttp));
-            response.setError(new ApiResponse.ErrorDetails(codeName, codeDescripcion));
+            response.setError(new ApiResponse.ErrorDetails(codeName, codeDescription));
         } catch (Exception ex) {
             System.out.println(ex.getMessage());
             return null;
